@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邀请码兑换系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .announcement {
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .invite-form {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .input-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .invite-input {
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .invite-input:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
+        }
+        
+        .invite-input::placeholder {
+            color: #aaa;
+        }
+        
+        .activate-btn {
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+        
+        .activate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(79, 172, 254, 0.4);
+        }
+        
+        .activate-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .result.success {
+            background-color: #e8f7ef;
+            border: 2px solid #28a745;
+            display: block;
+        }
+        
+        .result.error {
+            background-color: #fde8e8;
+            border: 2px solid #dc3545;
+            display: block;
+        }
+        
+        .result h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .account-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .account-row {
+            display: flex;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .account-row:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .account-label {
+            font-weight: 600;
+            width: 80px;
+            color: #555;
+        }
+        
+        .account-value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .cooldown-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+            height: 20px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .announcement {
+                padding: 15px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="announcement" id="announcement">欢迎使用邀请码兑换系统</div>
+        <div class="content">
+            <form class="invite-form" id="inviteForm">
+                <div class="input-group">
+                    <label for="inviteCode">请输入您的邀请码：</label>
+                    <input type="text" id="inviteCode" class="invite-input" placeholder="请输入您的邀请码" maxlength="20" required>
+                    <!-- 已移除对特殊字符的限制 -->
+                </div>
+                <button type="submit" class="activate-btn" id="activateBtn">激活邀请码</button>
+                <div class="cooldown-text" id="cooldownText"></div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>正在验证邀请码，请稍候...</p>
+                </div>
+            </form>
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== NocoDB 配置 ====================
+        // !!! 请务必修改以下配置，与你的NocoDB实例匹配 !!!
+        const CONFIG = {
+            // NocoDB 服务器地址 (末尾不要加斜杠)
+            SERVER_URL: "http://你的服务器IP:8080",
+            // 你的 API 访问令牌 (从 Settings -> Tokens 获取)
+            API_TOKEN: "YOUR_NOCODB_API_TOKEN_HERE",
+            // 项目名称（你在NocoDB中创建的Project名称）
+            PROJECT_NAME: "我的邀请码项目",
+            // 数据表名称（你在Project中创建的Table名称）
+            TABLE_NAME: "invite_codes",
+            // 字段映射（必须与你在NocoDB中设置的字段名完全一致）
+            FIELD_MAP: {
+                INVITE_CODE: "invite_code",   // 邀请码字段名
+                ACCOUNT: "account",           // 账号字段名
+                PASSWORD: "password",         // 密码字段名
+                STATUS: "status"              // 状态字段名
+            }
+        };
+
+        // ==================== 全局变量 ====================
+        let isCooldown = false;
+        let cooldownTimer = null;
+        const COOLDOWN_TIME = 10;
+
+        // ==================== DOM 元素 ====================
+        const inviteForm = document.getElementById('inviteForm');
+        const inviteCodeInput = document.getElementById('inviteCode');
+        const activateBtn = document.getElementById('activateBtn');
+        const cooldownText = document.getElementById('cooldownText');
+        const loading = document.getElementById('loading');
+        const resultDiv = document.getElementById('result');
+
+        // ==================== NocoDB API 函数 ====================
+
+        /**
+         * 在 NocoDB 表中查找匹配的邀请码记录
+         * @param {string} code - 用户输入的邀请码
+         * @returns {Promise<Object|null>} 找到的记录或null
+         */
+        async function findInviteCode(code) {
+            // NocoDB Filter API: 精确查找 invite_code 列等于输入值的记录
+            const filter = JSON.stringify({
+                where: `(${CONFIG.FIELD_MAP.INVITE_CODE},eq,${code})`
+            });
+
+            try {
+                const response = await fetch(
+                    `${CONFIG.SERVER_URL}/api/v1/db/data/noco/${CONFIG.PROJECT_NAME}/${CONFIG.TABLE_NAME}?filter=${encodeURIComponent(filter)}`,
+                    {
+                        headers: {
+                            'xc-token': CONFIG.API_TOKEN,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.ok) throw new Error(`查询失败: ${response.status}`);
+
+                const data = await response.json();
+                // 返回找到的第一条记录（邀请码应唯一）
+                return data.list && data.list.length > 0 ? data.list[0] : null;
+
+            } catch (error) {
+                console.error("查询邀请码失败:", error);
+                throw new Error("网络请求失败，请稍后重试");
+            }
+        }
+
+        /**
+         * 更新记录状态为“已激活”
+         * @param {string} recordId - 记录的唯一ID
+         * @returns {Promise<boolean>} 是否成功
+         */
+        async function activateRecord(recordId) {
+            try {
+                const response = await fetch(
+                    `${CONFIG.SERVER_URL}/api/v1/db/data/noco/${CONFIG.PROJECT_NAME}/${CONFIG.TABLE_NAME}/${recordId}`,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'xc-token': CONFIG.API_TOKEN,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            [CONFIG.FIELD_MAP.STATUS]: "已激活"
+                        })
+                    }
+                );
+
+                if (!response.ok) throw new Error(`更新失败: ${response.status}`);
+                return true;
+
+            } catch (error) {
+                console.error("更新记录状态失败:", error);
+                throw new Error("激活状态更新失败");
+            }
+        }
+
+        // ==================== 核心业务逻辑 ====================
+        inviteForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const inviteCode = inviteCodeInput.value.trim();
+
+            // 基础验证
+            if (!inviteCode) {
+                showError("请输入邀请码");
+                return;
+            }
+            if (inviteCode.length > 20) {
+                showError("邀请码长度不能超过20个字符");
+                return;
+            }
+            if (isCooldown) {
+                showError("请等待冷却时间结束");
+                return;
+            }
+
+            // 开始处理
+            startCooldown();
+            showLoading(true);
+
+            try {
+                // 1. 查找记录
+                const record = await findInviteCode(inviteCode);
+
+                if (!record) {
+                    showError("该邀请码有误，不能使用");
+                    return;
+                }
+
+                // 2. 检查状态
+                const currentStatus = record[CONFIG.FIELD_MAP.STATUS];
+                if (currentStatus === "已激活") {
+                    showError("该邀请码已经被使用，不能再次激活");
+                    return;
+                }
+
+                // 3. 激活记录
+                const success = await activateRecord(record.Id);
+                if (success) {
+                    // 4. 显示成功信息
+                    showAccountInfo(
+                        record[CONFIG.FIELD_MAP.ACCOUNT],
+                        record[CONFIG.FIELD_MAP.PASSWORD]
+                    );
+                }
+
+            } catch (error) {
+                console.error("激活流程出错:", error);
+                showError(`系统错误: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // ==================== 界面控制函数 ====================
+        // (以下函数与之前版本功能相同，直接复用)
+        // startCooldown(), updateCooldownText(), showLoading(), showError(), showAccountInfo()
+        // 请确保 showAccountInfo() 函数能正确显示包含特殊字符的密码
+
+        function startCooldown() {
+            isCooldown = true;
+            activateBtn.disabled = true;
+            let remaining = COOLDOWN_TIME;
+            updateCooldownText(remaining);
+            
+            cooldownTimer = setInterval(() => {
+                remaining--;
+                updateCooldownText(remaining);
+                if (remaining <= 0) {
+                    clearInterval(cooldownTimer);
+                    isCooldown = false;
+                    activateBtn.disabled = false;
+                    cooldownText.textContent = "";
+                }
+            }, 1000);
+        }
+
+        function updateCooldownText(seconds) {
+            cooldownText.textContent = `冷却时间: ${seconds}秒后可再次激活`;
+            cooldownText.style.color = "#ff6b6b";
+        }
+
+        function showLoading(show) {
+            loading.style.display = show ? "block" : "none";
+            activateBtn.style.display = show ? "none" : "block";
+        }
+
+        function showError(message) {
+            resultDiv.className = "result error";
+            resultDiv.innerHTML = `<h3>激活失败</h3><p>${message}</p>`;
+            resultDiv.style.display = "block";
+            setTimeout(() => { resultDiv.style.display = "none"; }, 5000);
+        }
+
+        function showAccountInfo(account, password) {
+            // 特别注意：这里直接显示密码，不做任何转义，以支持特殊字符
+            resultDiv.className = "result success";
+            resultDiv.innerHTML = `
+                <h3>🎉 激活成功！</h3>
+                <p>该账号现在已激活，请保存账号和密码</p>
+                <div class="account-info">
+                    <div class="account-row">
+                        <span class="account-label">账号:</span>
+                        <span class="account-value">${account}</span>
+                    </div>
+                    <div class="account-row">
+                        <span class="account-label">密码:</span>
+                        <span class="account-value">${password}</span>
+                    </div>
+                </div>
+                <p style="margin-top:15px; font-size:0.9rem; color:#666;">
+                    ⚠️ 请妥善保管您的账号密码，此信息仅显示一次
+                </p>
+            `;
+            resultDiv.style.display = "block";
+            inviteCodeInput.value = "";
+        }
+
+        // 初始化：移除任何输入限制（允许特殊字符）
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("NocoDB版邀请码系统已加载");
+            // 确保输入框无过滤器
+            if (inviteCodeInput) {
+                inviteCodeInput.addEventListener('input', function() {
+                    // 只保留长度检查，不限制字符类型
+                    if (this.value.length > 20) {
+                        this.value = this.value.substring(0, 20);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
