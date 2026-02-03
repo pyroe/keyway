@@ -230,14 +230,14 @@
         // !!! 请务必修改以下配置，与你的NocoDB实例匹配 !!!
         const CONFIG = {
             // NocoDB 服务器地址 (末尾不要加斜杠)
-            SERVER_URL: "http://你的服务器IP:8080",
-            // 你的 API 访问令牌 (从 Settings -> Tokens 获取)
-            API_TOKEN: "YOUR_NOCODB_API_TOKEN_HERE",
-            // 项目名称（你在NocoDB中创建的Project名称）
-            PROJECT_NAME: "我的邀请码项目",
-            // 数据表名称（你在Project中创建的Table名称）
-            TABLE_NAME: "invite_codes",
-            // 字段映射（必须与你在NocoDB中设置的字段名完全一致）
+            SERVER_URL: "http://localhost:8080",
+            // 你的 API 访问令牌 (从NocoDB后台左下角 用户头像 -> API Tokens 获取)
+            API_TOKEN: "CCCCCC",
+            // 项目名称（你在NocoDB中创建的BASE ID）
+            PROJECT_NAME: "CCCCCC",
+            // 数据表名称（你在BASE中创建的TABLE ID）
+            TABLE_NAME: "CCCCCC",
+            // 字段映射（必须与你在NocoDB中设置的FIELD ID完全一致）
             FIELD_MAP: {
                 INVITE_CODE: "invite_code",   // 邀请码字段名
                 ACCOUNT: "account",           // 账号字段名
@@ -441,7 +441,7 @@
                 <p style="margin-top:15px; font-size:0.9rem; color:#666;">
                     ⚠️ 请妥善保管您的账号密码，此信息仅显示一次
                 </p>
-            `;
+            `
             resultDiv.style.display = "block";
             inviteCodeInput.value = "";
         }
