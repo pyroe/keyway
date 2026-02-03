@@ -227,14 +227,13 @@
 
     <script>
         // ==================== NocoDB 配置 ====================
-        // !!! 请务必修改以下配置，与你的NocoDB实例匹配 !!!
         const CONFIG = {
             // NocoDB 服务器地址 (末尾不要加斜杠)
             SERVER_URL: "http://localhost:8080",
             // 你的 API 访问令牌 (从NocoDB后台左下角 用户头像 -> API Tokens 获取)
-            API_TOKEN: "CCCCCC",
+            API_TOKEN: "AAAAAA",
             // 项目名称（你在NocoDB中创建的BASE ID）
-            PROJECT_NAME: "CCCCCC",
+            PROJECT_NAME: "BBBBBB",
             // 数据表名称（你在BASE中创建的TABLE ID）
             TABLE_NAME: "CCCCCC",
             // 字段映射（必须与你在NocoDB中设置的FIELD ID完全一致）
@@ -353,7 +352,7 @@
                 const record = await findInviteCode(inviteCode);
 
                 if (!record) {
-                    showError("该邀请码有误，不能使用");
+                    showError("该邀请码有误，请检查输入");
                     return;
                 }
 
@@ -383,7 +382,6 @@
         });
 
         // ==================== 界面控制函数 ====================
-        // (以下函数与之前版本功能相同，直接复用)
         // startCooldown(), updateCooldownText(), showLoading(), showError(), showAccountInfo()
         // 请确保 showAccountInfo() 函数能正确显示包含特殊字符的密码
 
